@@ -275,9 +275,18 @@ class FoodCostingCalculator {
     if (recipe) {
       this.loadRecipeData(recipe);
       this.currentRecipe = recipeName;
-      bootstrap.Modal.getInstance(
-        document.getElementById("loadRecipeModal")
-      ).hide();
+
+      // Hide the modal safely
+      const modalElement = document.getElementById("loadRecipeModal");
+      const modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if (modalInstance) {
+        modalInstance.hide();
+      } else {
+        // Fallback: create new instance and hide
+        const modal = new bootstrap.Modal(modalElement);
+        modal.hide();
+      }
+
       this.showMessage(
         `Recipe "${recipeName}" loaded successfully!`,
         "success"
