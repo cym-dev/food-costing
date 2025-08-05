@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Costing Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+          <div class="d-flex flex-column p-3">
+            <h4 class="mb-4"><i class="fas fa-utensils"></i> Food Costing</h4>
+
+            <!-- Saved Recipes -->
+            <div class="mb-4">
+              <h6 class="text-muted">Saved Recipes</h6>
+              <div id="savedRecipes" class="list-group">
+                <!-- Saved recipes will be loaded here -->
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" onclick="newRecipe()">
+                <i class="fas fa-plus"></i> New Recipe
+              </button>
+              <button class="btn btn-outline-secondary" onclick="exportData()">
+                <i class="fas fa-download"></i> Export Data
+              </button>
+              <button class="btn btn-outline-danger" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 main-content">
+          <div class="container-fluid p-4">
+            <!-- Header -->
+            <div class="row mb-4">
+              <div class="col">
+                <h2>Food Costing Calculator</h2>
+                <p class="text-muted">
+                  Calculate ingredient costs and recipe profitability
+                </p>
+              </div>
+            </div>
+
+            <!-- Recipe Info -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5>
+                      <i class="fas fa-info-circle"></i> Recipe Information
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="recipeName" class="form-label"
+                          >Recipe Name</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="recipeName"
+                          placeholder="Enter recipe name"
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="servings" class="form-label"
+                          >Number of Servings</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="servings"
+                          value="1"
+                          min="1"
+                          onchange="calculateCosts()"
+                        />
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="sellingPrice" class="form-label"
+                          >Selling Price (₱)</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="sellingPrice"
+                          step="0.01"
+                          placeholder="0.00"
+                          onchange="calculateProfitability()"
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="laborCost" class="form-label"
+                          >Labor Cost (₱)</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="laborCost"
+                          step="0.01"
+                          value="0"
+                          onchange="calculateCosts()"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cost Summary -->
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5><i class="fas fa-calculator"></i> Cost Summary</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row text-center">
+                      <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                          <h6 class="text-muted mb-1">Total Cost</h6>
+                          <h4 class="text-primary" id="totalCost">₱0.00</h4>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                          <h6 class="text-muted mb-1">Cost per Serving</h6>
+                          <h4 class="text-info" id="costPerServing">₱0.00</h4>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row text-center mt-3">
+                      <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                          <h6 class="text-muted mb-1">Profit Margin</h6>
+                          <h4 class="text-success" id="profitMargin">0%</h4>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                          <h6 class="text-muted mb-1">Food Cost %</h6>
+                          <h4 class="text-warning" id="foodCostPercentage">
+                            0%
+                          </h4>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingredients Section -->
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div
+                    class="card-header d-flex justify-content-between align-items-center"
+                  >
+                    <h5><i class="fas fa-list"></i> Ingredients</h5>
+                    <button
+                      class="btn btn-success btn-sm"
+                      onclick="addIngredient()"
+                    >
+                      <i class="fas fa-plus"></i> Add Ingredient
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Ingredient</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Unit Cost (₱)</th>
+                            <th>Total Cost (₱)</th>
+                            <th width="10%">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody id="ingredientsTable">
+                          <!-- Ingredients will be added here dynamically -->
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <button class="btn btn-primary" onclick="saveRecipe()">
+                      <i class="fas fa-save"></i> Save Recipe
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      onclick="loadRecipe()"
+                    >
+                      <i class="fas fa-folder-open"></i> Load Recipe
+                    </button>
+                  </div>
+                  <div>
+                    <button class="btn btn-info" onclick="printRecipe()">
+                      <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-success" onclick="exportToPDF()">
+                      <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load Recipe Modal -->
+    <div class="modal fade" id="loadRecipeModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Load Recipe</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="recipesList">
+              <!-- Recipes list will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
