@@ -3,6 +3,8 @@ class FoodCostingCalculator {
   constructor() {
     this.ingredients = [];
     this.currentRecipe = null;
+    this.isCalculating = false; // Prevent recursion
+    this.autoSaveTimer = null; // For debounced auto-save
     this.init();
   }
 
@@ -13,12 +15,17 @@ class FoodCostingCalculator {
   }
 
   bindEvents() {
-    // Auto-save on input changes
+    // Auto-save on input changes (debounced to prevent loops)
+    let autoSaveTimeout;
     document.addEventListener("input", e => {
       if (
         e.target.matches("#recipeName, #servings, #sellingPrice, #laborCost")
       ) {
-        this.autoSave();
+        // Clear previous timeout to debounce
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+          this.autoSave();
+        }, 1000); // Wait 1 second before auto-saving
       }
     });
 
@@ -119,6 +126,10 @@ class FoodCostingCalculator {
 
   // Cost Calculations
   calculateCosts() {
+    // Prevent recursion by checking if already calculating
+    if (this.isCalculating) return;
+    this.isCalculating = true;
+
     const rows = document.querySelectorAll("#ingredientsTable tr");
     let totalIngredientCost = 0;
 
@@ -154,7 +165,12 @@ class FoodCostingCalculator {
     this.updateCostDisplay("costPerServing", costPerServing);
 
     this.calculateProfitability();
-    this.autoSave();
+
+    // Reset the calculating flag
+    this.isCalculating = false;
+
+    // Auto-save with debounce
+    this.debouncedAutoSave();
   }
 
   calculateProfitability() {
@@ -217,6 +233,14 @@ class FoodCostingCalculator {
       this.currentRecipe = null;
       this.showMessage("New recipe started", "success");
     }
+  }
+
+  // Debounced auto-save to prevent loops
+  debouncedAutoSave() {
+    clearTimeout(this.autoSaveTimer);
+    this.autoSaveTimer = setTimeout(() => {
+      this.autoSave();
+    }, 500);
   }
 
   saveRecipe() {
@@ -444,6 +468,86 @@ class FoodCostingCalculator {
     this.showMessage("Recipes exported successfully!", "success");
   }
 
+  importData() {
+    // Create a file input element
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json";
+    fileInput.style.display = "none";
+
+    fileInput.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+
+          // Validate the imported data structure
+          if (typeof importedData !== "object" || importedData === null) {
+            throw new Error("Invalid file format: Expected JSON object");
+          }
+
+          // Check if it's a valid recipes format
+          const isValidFormat = Object.values(importedData).every(
+            recipe =>
+              recipe &&
+              typeof recipe.name === "string" &&
+              Array.isArray(recipe.ingredients) &&
+              typeof recipe.servings === "number"
+          );
+
+          if (!isValidFormat) {
+            throw new Error("Invalid recipes format: Missing required fields");
+          }
+
+          // Ask user if they want to merge or replace
+          const shouldMerge = confirm(
+            `Import ${Object.keys(importedData).length} recipes?\n\n` +
+              "Click OK to MERGE with existing recipes\n" +
+              "Click Cancel to REPLACE all existing recipes"
+          );
+
+          let existingRecipes = {};
+          if (shouldMerge) {
+            existingRecipes = this.getSavedRecipes();
+          }
+
+          // Merge or replace recipes
+          const finalRecipes = { ...existingRecipes, ...importedData };
+
+          // Save to localStorage
+          localStorage.setItem(
+            "foodCostingRecipes",
+            JSON.stringify(finalRecipes)
+          );
+
+          // Refresh the UI
+          this.loadSavedRecipes();
+
+          const importCount = Object.keys(importedData).length;
+          const totalCount = Object.keys(finalRecipes).length;
+
+          this.showMessage(
+            `Successfully imported ${importCount} recipes! Total recipes: ${totalCount}`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Import error:", error);
+          this.showMessage(`Import failed: ${error.message}`, "danger");
+        }
+      };
+
+      reader.readAsText(file);
+    });
+
+    // Trigger file selection
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+  }
+
   clearAllData() {
     if (confirm("Clear all saved recipes? This action cannot be undone.")) {
       localStorage.removeItem("foodCostingRecipes");
@@ -506,6 +610,10 @@ function loadRecipe() {
 
 function exportData() {
   calculator.exportData();
+}
+
+function importData() {
+  calculator.importData();
 }
 
 function clearAllData() {

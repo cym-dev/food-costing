@@ -17,7 +17,41 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="container-fluid">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="index.html">
+          <i class="fas fa-utensils"></i> Food Costing Pro
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html">
+                <i class="fas fa-calculator"></i> Calculator
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html">
+                <i class="fas fa-chart-line"></i> Dashboard
+              </a>
+            </li>
+          </ul>
+          <span class="navbar-text">
+            <i class="fas fa-save"></i> Auto-save enabled
+          </span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
       <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 sidebar">
@@ -39,6 +73,9 @@
               </button>
               <button class="btn btn-outline-secondary" onclick="exportData()">
                 <i class="fas fa-download"></i> Export Data
+              </button>
+              <button class="btn btn-outline-info" onclick="importData()">
+                <i class="fas fa-upload"></i> Import Data
               </button>
               <button class="btn btn-outline-danger" onclick="clearAllData()">
                 <i class="fas fa-trash"></i> Clear All
@@ -92,7 +129,7 @@
                           id="servings"
                           value="1"
                           min="1"
-                          onchange="calculateCosts()"
+                          onchange="calculator.calculateCosts()"
                         />
                       </div>
                     </div>
@@ -107,7 +144,7 @@
                           id="sellingPrice"
                           step="0.01"
                           placeholder="0.00"
-                          onchange="calculateProfitability()"
+                          onchange="calculator.calculateProfitability()"
                         />
                       </div>
                       <div class="col-md-6 mb-3">
@@ -120,7 +157,7 @@
                           id="laborCost"
                           step="0.01"
                           value="0"
-                          onchange="calculateCosts()"
+                          onchange="calculator.calculateCosts()"
                         />
                       </div>
                     </div>
